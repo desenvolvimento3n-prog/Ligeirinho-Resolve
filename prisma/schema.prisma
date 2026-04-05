@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  username  String   @unique
+  password  String
+  role      String   @default("employee") // "admin" or "employee"
+  tickets   Ticket[] @relation("TicketCreator")
+  finalizedTickets Ticket[] @relation("TicketFinalizer")
+  logs      TicketLog[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Client {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String?  @unique
+  phone     String?
+  document  String?  @unique // CPF/CNPJ
+  tickets   Ticket[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id            Int           @id @default(autoincrement())
+  name          String        @unique
+  subcategories Subcategory[]
+  tickets       Ticket[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Subcategory {
+  id         Int      @id @default(autoincrement())
+  name       String
+  categoryId Int
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  tickets    Ticket[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([name, categoryId])
+}
+
+model Ticket {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  status      String   @default("open") // "open", "in_progress", "closed"
+  
+  clientId    Int
+  client      Client   @relation(fields: [clientId], references: [id])
+  
+  userId      Int
+  user        User     @relation("TicketCreator", fields: [userId], references: [id])
+  
+  finalizerId Int?
+  finalizer   User?    @relation("TicketFinalizer", fields: [finalizerId], references: [id])
+  
+  categoryId    Int?
+  category      Category? @relation(fields: [categoryId], references: [id])
+  subCategoryId Int?
+  subcategory   Subcategory? @relation(fields: [subCategoryId], references: [id])
+
+  logs        TicketLog[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model TicketLog {
+  id        Int      @id @default(autoincrement())
+  message   String
+  photoUrl  String?
+  type      String   @default("comment") // "comment", "status_change", "start", "finish"
+  
+  ticketId  Int
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  
+  createdAt DateTime @default(now())
+}
