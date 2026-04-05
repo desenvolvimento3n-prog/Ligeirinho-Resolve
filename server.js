@@ -34,22 +34,20 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Algo deu errado no servidor!' });
 });
 
-const server = app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
-});
+// No Vercel, o Vercel chamará o app exportado. No local, rodamos o listen.
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Servidor rodando na porta ${PORT}`);
+  });
+}
+
+module.exports = app;
 
 server.on('error', (err) => {
   console.error('SERVER ERROR EVENT:', err);
 });
 
-// Diagnostic listeners
-process.on('exit', (code) => {
-  console.log(`PROCESSO FINALIZADO com código: ${code}`);
-});
-
+// Diagnostic listeners - removidos os que não fazem sentido em serverless ou adaptados
 process.on('uncaughtException', (err) => {
   console.error('EXCEÇÃO NÃO TRATADA:', err);
 });
-
-// Força o loop de eventos a ficar ativo
-setInterval(() => {}, 60000);
