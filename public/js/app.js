@@ -22,6 +22,7 @@ let lastReportTickets = [];
 let operatorChart = null; 
 let clientChart = null;   
 let categoryChart = null; 
+let subcategoryChart = null; 
 let selectedCategoryId = null;
 
 // Custom Confirm Modal
@@ -726,7 +727,7 @@ async function handleSubcategorySubmit(e) {
 async function deleteSubcategory(id) {
   window.customConfirm('Excluir subcategoria?', async () => {
     try {
-      await apiCall(`/subcategories/${id}`, 'DELETE');
+      await apiCall(`/categories/subcategories/${id}`, 'DELETE');
       loadSubcategories(selectedCategoryId);
     } catch (err) { alert(err.message); }
   });
@@ -861,7 +862,7 @@ function renderReportTable(tickets) {
   tbody.innerHTML = tickets.map(t => `
     <tr>
       <td>#${t.id}</td>
-      <td>${t.title} <br><small class="text-secondary">${t.category?.name || ''}</small></td>
+      <td>${t.title} <br><small class="text-secondary">${t.category?.name || ''} ${t.subcategory ? '> ' + t.subcategory.name : ''}</small></td>
       <td>${t.client?.name || 'N/A'}</td>
       <td>${t.user?.name || '-'}</td>
       <td>${t.finalizer?.name || '-'}</td>
@@ -901,19 +902,24 @@ function renderCharts(tickets) {
   const opMap = {};
   const cliMap = {};
   const catMap = {};
+  const subMap = {};
 
   tickets.forEach(t => {
     const op = t.finalizer?.name || 'Não finalizado';
     const cli = t.client?.name || 'N/A';
     const cat = t.category?.name || 'Sem categoria';
+    const sub = t.subcategory?.name || 'Sem subcategoria';
+    
     opMap[op] = (opMap[op] || 0) + 1;
     cliMap[cli] = (cliMap[cli] || 0) + 1;
     catMap[cat] = (catMap[cat] || 0) + 1;
+    subMap[sub] = (subMap[sub] || 0) + 1;
   });
 
   if (operatorChart) operatorChart.destroy();
   if (clientChart) clientChart.destroy();
   if (categoryChart) categoryChart.destroy();
+  if (subcategoryChart) subcategoryChart.destroy();
 
   const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
@@ -940,6 +946,15 @@ function renderCharts(tickets) {
     data: {
       labels: Object.keys(catMap),
       datasets: [{ data: Object.values(catMap), backgroundColor: colors }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'bottom' } } }
+  });
+
+  subcategoryChart = new Chart(document.getElementById('chart-subcategories').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(subMap),
+      datasets: [{ data: Object.values(subMap), backgroundColor: colors }]
     },
     options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'bottom' } } }
   });
@@ -1003,18 +1018,29 @@ async function executeSelectivePDF() {
   if (options.ops) addChart('chart-operators', 'Desempenho por Operador');
   if (options.cli) addChart('chart-clients', 'Volume por Cliente');
   if (options.cat) addChart('chart-categories', 'Distribuição por Categoria');
+  if (document.getElementById('chk-sub-dist').checked) addChart('chart-subcategories', 'Distribuição por Subcategoria');
 
   if (options.table) {
     if (y > 200) { doc.addPage(); y = 20; }
     doc.setFontSize(14);
-    doc.text('Tabela de Resumo', 14, y);
-    const catMap = {};
+    doc.text('Tabela de Resumo (Categorias)', 14, y);
+    const catRes = {};
+    const subRes = {};
     lastReportTickets.forEach(t => {
-      const n = t.category?.name || 'Sem cat.';
-      catMap[n] = (catMap[n] || 0) + 1;
+      const c = t.category?.name || 'Sem cat.';
+      const s = t.subcategory?.name || 'Sem sub.';
+      catRes[c] = (catRes[c] || 0) + 1;
+      subRes[s] = (subRes[s] || 0) + 1;
     });
-    const body = Object.entries(catMap).map(([k, v]) => [k, v, ((v/lastReportTickets.length)*100).toFixed(1) + '%']);
-    doc.autoTable({ head: [["Categoria", "Total", "%"]], body, startY: y + 5, theme: 'grid' });
+    const bodyCat = Object.entries(catRes).map(([k, v]) => [k, v, ((v/lastReportTickets.length)*100).toFixed(1) + '%']);
+    doc.autoTable({ head: [["Categoria", "Total", "%"]], body: bodyCat, startY: y + 5, theme: 'grid' });
+    
+    y = doc.lastAutoTable.finalY + 15;
+    if (y > 230) { doc.addPage(); y = 20; }
+    doc.setFontSize(14);
+    doc.text('Tabela de Resumo (Subcategorias)', 14, y);
+    const bodySub = Object.entries(subRes).map(([k, v]) => [k, v, ((v/lastReportTickets.length)*100).toFixed(1) + '%']);
+    doc.autoTable({ head: [["Subcategoria", "Total", "%"]], body: bodySub, startY: y + 5, theme: 'grid' });
   }
 
   doc.save('relatorio_visual.pdf');
