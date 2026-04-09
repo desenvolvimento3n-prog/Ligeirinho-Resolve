@@ -88,7 +88,10 @@ router.get('/', async (req, res) => {
       if (endDate) where.createdAt.lte = new Date(`${endDate}T23:59:59.999`);
     }
 
-    const tickets = await prisma.ticket.findMany({
+    const page = req.query.page ? parseInt(req.query.page) : null;
+    const limit = req.query.limit ? parseInt(req.query.limit) : null;
+
+    const findOptions = {
       where,
       include: {
         client: { select: { id: true, name: true, phone: true } },
@@ -98,8 +101,22 @@ router.get('/', async (req, res) => {
         finalizer: { select: { id: true, name: true } }
       },
       orderBy: { createdAt: 'desc' }
-    });
-    res.json(tickets);
+    };
+
+    if (page && limit) {
+      findOptions.skip = (page - 1) * limit;
+      findOptions.take = limit;
+      
+      const [tickets, totalCount] = await Promise.all([
+        prisma.ticket.findMany(findOptions),
+        prisma.ticket.count({ where })
+      ]);
+      
+      res.json({ tickets, totalCount });
+    } else {
+      const tickets = await prisma.ticket.findMany(findOptions);
+      res.json(tickets);
+    }
   } catch (error) {
     console.error('Error fetching tickets:', error);
     res.status(500).json({ error: 'Erro ao buscar chamados.' });

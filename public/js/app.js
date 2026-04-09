@@ -25,6 +25,9 @@ let categoryChart = null;
 let subcategoryChart = null; 
 let selectedCategoryId = null;
 
+let currentTicketsPage = 1;
+const ticketsLimit = 10;
+
 // Custom Confirm Modal
 window.customConfirm = function(message, onConfirm) {
   const modal = document.getElementById('confirm-modal');
@@ -156,7 +159,12 @@ function init() {
 
   // Status Filter Listener
   const statusFilter = document.getElementById('status-filter');
-  if (statusFilter) statusFilter.addEventListener('change', loadTickets);
+  if (statusFilter) {
+    statusFilter.addEventListener('change', () => {
+      currentTicketsPage = 1;
+      loadTickets();
+    });
+  }
 
   // Forms Listeners
   const clientForm = document.getElementById('client-form');
@@ -396,14 +404,27 @@ async function deleteClient(id) {
 // --- Tickets Module ---
 async function loadTickets() {
   const status = document.getElementById('status-filter').value;
-  const qs = status !== 'todos' ? `?status=${status}` : '';
+  let qs = status !== 'todos' ? `status=${status}` : '';
+  
+  // Add pagination params
+  qs += (qs ? '&' : '') + `page=${currentTicketsPage}&limit=${ticketsLimit}`;
+
   try {
-    const tickets = await apiCall('/tickets' + qs);
+    const data = await apiCall('/tickets?' + qs);
+    const tickets = data.tickets; // Response is now { tickets, totalCount }
+    const totalCount = data.totalCount;
+
     const tbody = document.getElementById('tickets-table-body');
+    if (tickets.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; opacity: 0.7; padding: 2rem;">Nenhum chamado encontrado.</td></tr>';
+      document.getElementById('tickets-pagination').innerHTML = '';
+      return;
+    }
+
     tbody.innerHTML = tickets.map(t => `
       <tr onclick="openAttendance(${t.id})" style="cursor: pointer;" title="Clique para ver o histórico">
         <td>#${t.id}</td>
-        <td>${t.title} <br><small class="text-secondary">${t.category?.name || ''} > ${t.subcategory?.name || ''}</small></td>
+        <td>${t.title} <br><small class="text-secondary">${t.category?.name || ''} ${t.subcategory ? '> ' + t.subcategory.name : ''}</small></td>
         <td>${t.client?.name || 'N/A'}</td>
         <td>${t.user?.name || 'Sistema'}</td>
         <td>${t.finalizer?.name || '-'}</td>
@@ -416,8 +437,48 @@ async function loadTickets() {
         </td>
       </tr>
     `).join('');
+
+    renderTicketsPagination(totalCount);
+
   } catch (err) { console.error(err); }
 }
+
+function renderTicketsPagination(totalCount) {
+  const totalPages = Math.ceil(totalCount / ticketsLimit);
+  const container = document.getElementById('tickets-pagination');
+  
+  if (totalPages <= 1) {
+    container.innerHTML = '';
+    return;
+  }
+
+  let html = '';
+  
+  // Previous Button
+  html += `<button class="pagination-btn" ${currentTicketsPage === 1 ? 'disabled' : ''} onclick="changeTicketsPage(${currentTicketsPage - 1})"><i class="fas fa-chevron-left"></i></button>`;
+
+  // Numeric Buttons
+  for (let i = 1; i <= totalPages; i++) {
+    // Show first, last, and pages around current
+    if (i === 1 || i === totalPages || (i >= currentTicketsPage - 1 && i <= currentTicketsPage + 1)) {
+      html += `<button class="pagination-btn ${i === currentTicketsPage ? 'active' : ''}" onclick="changeTicketsPage(${i})">${i}</button>`;
+    } else if (i === currentTicketsPage - 2 || i === currentTicketsPage + 2) {
+      html += `<span style="color: var(--text-secondary); padding: 0 0.5rem;">...</span>`;
+    }
+  }
+
+  // Next Button
+  html += `<button class="pagination-btn" ${currentTicketsPage === totalPages ? 'disabled' : ''} onclick="changeTicketsPage(${currentTicketsPage + 1})"><i class="fas fa-chevron-right"></i></button>`;
+
+  container.innerHTML = html;
+}
+
+window.changeTicketsPage = (page) => {
+  currentTicketsPage = page;
+  loadTickets();
+  // Scroll to top of table
+  document.getElementById('tickets-content').scrollTop = 0;
+};
 
 async function saveTicket(e) {
   e.preventDefault();
