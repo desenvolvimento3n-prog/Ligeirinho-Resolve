@@ -1,0 +1,3 @@
+{
+  "/api/categories/[categoryId]/subcategories/route": "app/api/categories/[categoryId]/subcategories/route.js"
+}

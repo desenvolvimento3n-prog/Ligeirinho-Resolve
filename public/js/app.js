@@ -256,7 +256,10 @@ async function handleLogin(e) {
   try {
     const res = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true'
+      },
       body: JSON.stringify({ username, password })
     });
     
@@ -309,7 +312,8 @@ async function apiCall(endpoint, method = 'GET', body = null) {
   const options = {
     method,
     headers: {
-      'Authorization': `Bearer ${token}`
+      'Authorization': `Bearer ${token}`,
+      'ngrok-skip-browser-warning': 'true'
     }
   };
   if (body) {
@@ -578,7 +582,10 @@ async function openAttendance(id) {
         try {
           const res = await fetch(`${API_URL}/tickets/${id}/logs`, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` },
+            headers: { 
+              'Authorization': `Bearer ${token}`,
+              'ngrok-skip-browser-warning': 'true'
+            },
             body: formData
           });
           if (!res.ok) throw new Error('Erro ao enviar mensagem');
@@ -604,7 +611,10 @@ async function startTicketAttendance(id) {
     
     const res = await fetch(`${API_URL}/tickets/${id}/logs`, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}` },
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'ngrok-skip-browser-warning': 'true'
+      },
       body: formData
     });
     if (!res.ok) throw new Error('Erro ao iniciar atendimento');
@@ -633,7 +643,10 @@ function openFinishModal(id) {
       try {
         const res = await fetch(`${API_URL}/tickets/${id}/logs`, {
           method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` },
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'ngrok-skip-browser-warning': 'true'
+          },
           body: formData
         });
         if (!res.ok) throw new Error('Erro ao finalizar chamado');
