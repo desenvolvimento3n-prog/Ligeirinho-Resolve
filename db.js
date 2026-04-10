@@ -1,6 +1,6 @@
-const { Pool } = require('pg');
-const { PrismaPg } = require('@prisma/adapter-pg');
-const { PrismaClient } = require('@prisma/client');
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '@prisma/client';
 
 const prismaClientSingleton = () => {
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -11,6 +11,6 @@ const prismaClientSingleton = () => {
 const globalForPrisma = globalThis;
 const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
 
-module.exports = prisma;
+export default prisma;
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
