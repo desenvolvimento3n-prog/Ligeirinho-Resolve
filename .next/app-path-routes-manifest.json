@@ -1,0 +1,18 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/api/auth/login/route": "/api/auth/login",
+  "/api/categories/[id]/route": "/api/categories/[id]",
+  "/api/categories/[id]/subcategories/route": "/api/categories/[id]/subcategories",
+  "/api/categories/route": "/api/categories",
+  "/api/categories/subcategories/[id]/route": "/api/categories/subcategories/[id]",
+  "/api/clients/[id]/route": "/api/clients/[id]",
+  "/api/clients/route": "/api/clients",
+  "/api/tickets/[id]/logs/route": "/api/tickets/[id]/logs",
+  "/api/tickets/[id]/route": "/api/tickets/[id]",
+  "/api/tickets/route": "/api/tickets",
+  "/api/users/[id]/password/route": "/api/users/[id]/password",
+  "/api/users/[id]/route": "/api/users/[id]",
+  "/api/users/route": "/api/users",
+  "/page": "/"
+}
