@@ -16,7 +16,7 @@ export async function GET(req, { params }) {
     return NextResponse.json(ticket);
   } catch (error) {
     console.error('Error fetching ticket details:', error);
-    return NextResponse.json({ error: 'Erro interno.' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro interno: ' + error.message }, { status: 500 });
   }
 }
 
@@ -41,7 +41,7 @@ export async function PUT(req, { params }) {
     return NextResponse.json(updated);
   } catch (error) {
     console.error('Error updating ticket:', error);
-    return NextResponse.json({ error: 'Erro ao atualizar chamado.' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro ao atualizar chamado: ' + error.message }, { status: 500 });
   }
 }
 
@@ -51,10 +51,13 @@ export async function DELETE(req, { params }) {
 
   const { id } = params;
   try {
+    // Primeiro deletar logs se o cascade não estiver funcionando no DB
+    await prisma.ticketLog.deleteMany({ where: { ticketId: parseInt(id) } });
+    
     await prisma.ticket.delete({ where: { id: parseInt(id) } });
     return NextResponse.json({ message: 'Chamado deletado.' });
   } catch (error) {
     console.error('Error deleting ticket:', error);
-    return NextResponse.json({ error: 'Erro ao deletar chamado.' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro ao deletar chamado: ' + error.message }, { status: 500 });
   }
 }
