@@ -18,12 +18,12 @@ export async function GET(req) {
     const endDate = searchParams.get('endDate');
 
     const where = {};
-    if (status) where.status = status;
-    if (clientId) where.clientId = parseInt(clientId);
-    if (userId) where.userId = parseInt(userId);
-    if (finalizerId) where.finalizerId = parseInt(finalizerId);
-    if (categoryId) where.categoryId = parseInt(categoryId);
-    if (subCategoryId) where.subCategoryId = parseInt(subCategoryId);
+    if (status && status !== 'todos') where.status = status;
+    if (clientId && !isNaN(parseInt(clientId))) where.clientId = parseInt(clientId);
+    if (userId && !isNaN(parseInt(userId))) where.userId = parseInt(userId);
+    if (finalizerId && !isNaN(parseInt(finalizerId))) where.finalizerId = parseInt(finalizerId);
+    if (categoryId && !isNaN(parseInt(categoryId))) where.categoryId = parseInt(categoryId);
+    if (subCategoryId && !isNaN(parseInt(subCategoryId))) where.subCategoryId = parseInt(subCategoryId);
 
     if (startDate || endDate) {
       where.createdAt = {};
@@ -46,7 +46,7 @@ export async function GET(req) {
       orderBy: { createdAt: 'desc' }
     };
 
-    if (page && limit) {
+    if (page && limit && !isNaN(page) && !isNaN(limit)) {
       findOptions.skip = (page - 1) * limit;
       findOptions.take = limit;
       
@@ -62,7 +62,7 @@ export async function GET(req) {
     }
   } catch (error) {
     console.error('Error fetching tickets:', error);
-    return NextResponse.json({ error: 'Erro ao buscar chamados.' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro ao buscar chamados no servidor.' }, { status: 500 });
   }
 }
 
@@ -72,16 +72,21 @@ export async function POST(req) {
 
   try {
     const { title, description, clientId, categoryId, subCategoryId } = await req.json();
-    const userId = auth.user.id;
+    
+    // Convert to integer and validate
+    const parsedUserId = parseInt(auth.user.id);
+    const parsedClientId = parseInt(clientId);
 
-    if (!clientId) return NextResponse.json({ error: 'O chamado deve ser vinculado a um cliente.' }, { status: 400 });
+    if (isNaN(parsedUserId)) return NextResponse.json({ error: 'Usuário inválido na sessão.' }, { status: 400 });
+    if (!title || title.trim() === '') return NextResponse.json({ error: 'O título do chamado é obrigatório.' }, { status: 400 });
+    if (!parsedClientId || isNaN(parsedClientId)) return NextResponse.json({ error: 'O chamado deve ser vinculado a um cliente válido.' }, { status: 400 });
 
     const ticket = await prisma.ticket.create({
       data: {
-        title,
-        description,
-        clientId: parseInt(clientId),
-        userId,
+        title: title.trim(),
+        description: description || '',
+        clientId: parsedClientId,
+        userId: parsedUserId,
         categoryId: categoryId && !isNaN(parseInt(categoryId)) ? parseInt(categoryId) : null,
         subCategoryId: subCategoryId && !isNaN(parseInt(subCategoryId)) ? parseInt(subCategoryId) : null,
         status: 'open'
@@ -90,6 +95,6 @@ export async function POST(req) {
     return NextResponse.json(ticket, { status: 201 });
   } catch (error) {
     console.error('Error creating ticket:', error);
-    return NextResponse.json({ error: 'Erro ao criar chamado.' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro interno ao criar chamado.' }, { status: 500 });
   }
 }

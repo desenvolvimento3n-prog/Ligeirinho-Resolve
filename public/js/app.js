@@ -486,12 +486,28 @@ window.changeTicketsPage = (page) => {
 
 async function saveTicket(e) {
   e.preventDefault();
+  const title = document.getElementById('ticket-title').value;
+  const clientId = document.getElementById('ticket-client').value;
+  const categoryId = document.getElementById('ticket-category').value;
+  const subCategoryVal = document.getElementById('ticket-subcategory').value;
+  const description = document.getElementById('ticket-desc').value;
+
+  if (!title || !title.trim()) {
+    alert('Por favor, insira um título ou assunto para o chamado.');
+    return;
+  }
+
+  if (!clientId) {
+    alert('Por favor, selecione um cliente.');
+    return;
+  }
+
   const data = {
-    title: document.getElementById('ticket-title').value,
-    clientId: parseInt(document.getElementById('ticket-client').value) || null,
-    categoryId: parseInt(document.getElementById('ticket-category').value) || null,
-    subCategoryId: parseInt(document.getElementById('ticket-subcategory').value) || null,
-    description: document.getElementById('ticket-desc').value
+    title: title.trim(),
+    clientId: parseInt(clientId) || null,
+    categoryId: parseInt(categoryId) || null,
+    subCategoryId: parseInt(subCategoryVal) || null,
+    description: description
   };
 
   try {
@@ -499,7 +515,10 @@ async function saveTicket(e) {
     document.getElementById('ticket-modal').classList.add('hidden');
     loadTickets();
     loadDashboardData();
-  } catch (err) { alert(err.message); }
+  } catch (err) { 
+    console.error('Erro ao salvar:', err);
+    alert('Erro: ' + err.message); 
+  }
 }
 
 async function deleteTicket(id) {

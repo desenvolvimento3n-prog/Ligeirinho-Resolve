@@ -166,9 +166,9 @@ export default function Home() {
                 <div className="header-actions row" style={{ gap: '10px' }}>
                   <select id="status-filter" className="form-control" style={{ width: 'auto' }}>
                     <option value="todos">Todos os status</option>
-                    <option value="ABERTO">Aberto</option>
-                    <option value="EM_ANDAMENTO">Em Andamento</option>
-                    <option value="CONCLUIDO">Concluído</option>
+                    <option value="open">Aberto</option>
+                    <option value="in_progress">Em Andamento</option>
+                    <option value="closed">Concluído</option>
                   </select>
                 </div>
               </div>
