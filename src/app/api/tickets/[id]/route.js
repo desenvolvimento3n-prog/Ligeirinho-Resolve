@@ -6,8 +6,8 @@ export async function GET(req, { params }) {
   const auth = verifyAuth(req);
   if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
-  const { id } = params;
   try {
+    const { id } = await params;
     const ticket = await prisma.ticket.findUnique({
       where: { id: parseInt(id) },
       include: { client: true, user: true, category: true, subcategory: true, finalizer: true }
@@ -24,8 +24,8 @@ export async function PUT(req, { params }) {
   const auth = verifyAuth(req);
   if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
-  const { id } = params;
   try {
+    const { id } = await params;
     const { title, description, status, categoryId, subCategoryId } = await req.json();
     const updated = await prisma.ticket.update({
       where: { id: parseInt(id) },
@@ -50,11 +50,11 @@ export async function DELETE(req, { params }) {
   if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   try {
-    const { id } = params;
+    const { id } = await params;
     const ticketId = parseInt(id);
 
-    if (isNaN(ticketId)) {
-      return NextResponse.json({ error: 'ID de chamado inválido.' }, { status: 400 });
+    if (!id || isNaN(ticketId)) {
+      return NextResponse.json({ error: 'ID de chamado inválido: ' + id }, { status: 400 });
     }
 
     // Primeiro deletar logs para garantir que não haja erro de chave estrangeira

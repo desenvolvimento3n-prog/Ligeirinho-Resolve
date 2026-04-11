@@ -8,8 +8,8 @@ export async function PUT(req, { params }) {
   if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
   if (!isAdmin(auth.user)) return NextResponse.json({ error: 'Acesso restrito a administradores.' }, { status: 403 });
 
-  const { id } = params;
   try {
+    const { id } = await params;
     const { name, username, role, password } = await req.json();
     
     if (password && password.length < 6) {
@@ -37,8 +37,8 @@ export async function DELETE(req, { params }) {
   if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
   if (!isAdmin(auth.user)) return NextResponse.json({ error: 'Acesso restrito a administradores.' }, { status: 403 });
 
-  const { id } = params;
   try {
+    const { id } = await params;
     if (parseInt(id) === auth.user.id) {
       return NextResponse.json({ error: 'Você não pode excluir seu próprio usuário.' }, { status: 400 });
     }

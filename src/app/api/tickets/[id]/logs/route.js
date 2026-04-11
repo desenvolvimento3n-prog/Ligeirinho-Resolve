@@ -8,8 +8,8 @@ export async function GET(req, { params }) {
   const auth = verifyAuth(req);
   if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
-  const { id } = params;
   try {
+    const { id } = await params;
     const logs = await prisma.ticketLog.findMany({
       where: { ticketId: parseInt(id) },
       include: { user: { select: { name: true } } },
@@ -25,7 +25,8 @@ export async function POST(req, { params }) {
   const auth = verifyAuth(req);
   if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
-  const ticketId = parseInt(params.id);
+  const { id } = await params;
+  const ticketId = parseInt(id);
   const userId = auth.user.id;
 
   try {
