@@ -488,9 +488,9 @@ async function saveTicket(e) {
   e.preventDefault();
   const data = {
     title: document.getElementById('ticket-title').value,
-    clientId: parseInt(document.getElementById('ticket-client').value),
-    categoryId: parseInt(document.getElementById('ticket-category').value),
-    subCategoryId: parseInt(document.getElementById('ticket-subcategory').value),
+    clientId: parseInt(document.getElementById('ticket-client').value) || null,
+    categoryId: parseInt(document.getElementById('ticket-category').value) || null,
+    subCategoryId: parseInt(document.getElementById('ticket-subcategory').value) || null,
     description: document.getElementById('ticket-desc').value
   };
 

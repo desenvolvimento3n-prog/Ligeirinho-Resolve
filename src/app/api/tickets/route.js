@@ -82,8 +82,8 @@ export async function POST(req) {
         description,
         clientId: parseInt(clientId),
         userId,
-        categoryId: categoryId ? parseInt(categoryId) : null,
-        subCategoryId: subCategoryId ? parseInt(subCategoryId) : null,
+        categoryId: categoryId && !isNaN(parseInt(categoryId)) ? parseInt(categoryId) : null,
+        subCategoryId: subCategoryId && !isNaN(parseInt(subCategoryId)) ? parseInt(subCategoryId) : null,
         status: 'open'
       }
     });
