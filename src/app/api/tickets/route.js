@@ -95,6 +95,6 @@ export async function POST(req) {
     return NextResponse.json(ticket, { status: 201 });
   } catch (error) {
     console.error('Error creating ticket:', error);
-    return NextResponse.json({ error: 'Erro interno ao criar chamado.' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro interno ao criar chamado: ' + error.message }, { status: 500 });
   }
 }
