@@ -49,13 +49,29 @@ export async function DELETE(req, { params }) {
   const auth = verifyAuth(req);
   if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
-  const { id } = params;
   try {
-    // Primeiro deletar logs se o cascade não estiver funcionando no DB
-    await prisma.ticketLog.deleteMany({ where: { ticketId: parseInt(id) } });
+    const { id } = params;
+    const ticketId = parseInt(id);
+
+    if (isNaN(ticketId)) {
+      return NextResponse.json({ error: 'ID de chamado inválido.' }, { status: 400 });
+    }
+
+    // Primeiro deletar logs para garantir que não haja erro de chave estrangeira
+    await prisma.ticketLog.deleteMany({
+      where: {
+        ticketId: ticketId
+      }
+    });
     
-    await prisma.ticket.delete({ where: { id: parseInt(id) } });
-    return NextResponse.json({ message: 'Chamado deletado.' });
+    // Agora deletar o chamado
+    const deleted = await prisma.ticket.delete({
+      where: {
+        id: ticketId
+      }
+    });
+
+    return NextResponse.json({ message: 'Chamado deletado com sucesso.', id: deleted.id });
   } catch (error) {
     console.error('Error deleting ticket:', error);
     return NextResponse.json({ error: 'Erro ao deletar chamado: ' + error.message }, { status: 500 });
