@@ -7,7 +7,7 @@ export async function PUT(req, { params }) {
   if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
   if (!isAdmin(auth.user)) return NextResponse.json({ error: 'Acesso restrito a administradores.' }, { status: 403 });
 
-  const { id } = params;
+  const { id } = await params;
   try {
     const { name } = await req.json();
     const category = await prisma.category.update({
@@ -26,7 +26,7 @@ export async function DELETE(req, { params }) {
   if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
   if (!isAdmin(auth.user)) return NextResponse.json({ error: 'Acesso restrito a administradores.' }, { status: 403 });
 
-  const { id } = params;
+  const { id } = await params;
   try {
     await prisma.category.delete({
       where: { id: parseInt(id) }

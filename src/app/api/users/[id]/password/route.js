@@ -8,7 +8,7 @@ export async function PATCH(req, { params }) {
   if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
   if (!isAdmin(auth.user)) return NextResponse.json({ error: 'Acesso restrito a administradores.' }, { status: 403 });
 
-  const { id } = params;
+  const { id } = await params;
   try {
     const { password } = await req.json();
     if (!password) return NextResponse.json({ error: 'Senha é obrigatória.' }, { status: 400 });
