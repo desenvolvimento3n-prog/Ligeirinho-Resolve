@@ -1100,12 +1100,32 @@ async function executeSelectivePDF() {
 
   const addChart = (id, title) => {
     const canvas = document.getElementById(id);
-    const imgData = canvas.toDataURL('image/png');
+    if (!canvas) return;
+
+    if (y > 60) { 
+      doc.addPage(); 
+      y = 20; 
+    }
+
+    const imgData = canvas.toDataURL('image/png', 1.0);
+    const canvasRatio = canvas.width / canvas.height;
+    
+    let pdfWidth = 182;
+    let pdfHeight = pdfWidth / canvasRatio;
+    
+    const maxHeight = 230; 
+    if (pdfHeight > maxHeight) {
+      pdfHeight = maxHeight;
+      pdfWidth = pdfHeight * canvasRatio;
+    }
+    
+    const xOffset = 14 + (182 - pdfWidth) / 2;
+
     doc.setFontSize(14);
     doc.text(title, 14, y);
-    doc.addImage(imgData, 'PNG', 14, y + 5, 180, 80);
-    y += 95;
-    if (y > 230) { doc.addPage(); y = 20; }
+    doc.addImage(imgData, 'PNG', xOffset, y + 10, pdfWidth, pdfHeight);
+    
+    y = y + 10 + pdfHeight + 15;
   };
 
   if (options.ops) addChart('chart-operators', 'Desempenho por Operador');
@@ -1114,7 +1134,7 @@ async function executeSelectivePDF() {
   if (document.getElementById('chk-sub-dist').checked) addChart('chart-subcategories', 'Distribuição por Subcategoria');
 
   if (options.table) {
-    if (y > 200) { doc.addPage(); y = 20; }
+    if (y > 60) { doc.addPage(); y = 20; }
     doc.setFontSize(14);
     doc.text('Tabela de Resumo (Categorias)', 14, y);
     const catRes = {};
