@@ -955,12 +955,21 @@ select.form-control option {
   display: flex;
   flex-direction: column;
   padding: 1.5rem;
-  height: 450px;
+  min-height: 450px;
+  position: relative;
+  height: auto;
+}
+.chart-wrapper {
+  width: 100%;
+  aspect-ratio: 1 / 1;
   position: relative;
 }
 .chart-container canvas {
-  flex: 1;
-  min-height: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
 }
 .chart-container h3 {
   margin-bottom: 1.5rem;

@@ -1040,7 +1040,7 @@ function renderCharts(tickets) {
       labels: Object.keys(catMap),
       datasets: [{ data: Object.values(catMap), backgroundColor: colors }]
     },
-    options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'bottom' } } }
+    options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'right' } } }
   });
 
   subcategoryChart = new Chart(document.getElementById('chart-subcategories').getContext('2d'), {
@@ -1049,7 +1049,7 @@ function renderCharts(tickets) {
       labels: Object.keys(subMap),
       datasets: [{ data: Object.values(subMap), backgroundColor: colors }]
     },
-    options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'bottom' } } }
+    options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'right' } } }
   });
 }
 
