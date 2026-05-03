@@ -301,6 +301,7 @@ export default function Home() {
                   <tbody></tbody>
                 </table>
               </div>
+              <div id="reports-pagination" className="pagination-container" style={{ marginTop: '1rem', marginBottom: '2rem' }}></div>
               <div className="stats-grid" id="report-stats-container" style={{ marginTop: '2rem', marginBottom: '2.5rem', display: 'none' }}>
                 <div className="stat-card glass-card total">
                   <div className="stat-card-header">

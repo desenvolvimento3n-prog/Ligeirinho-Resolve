@@ -27,6 +27,8 @@ let selectedCategoryId = null;
 
 let currentTicketsPage = 1;
 const ticketsLimit = 10;
+let currentReportsPage = 1;
+const reportsPerPage = 8;
 
 // Custom Confirm Modal
 window.customConfirm = function(message, onConfirm) {
@@ -933,6 +935,7 @@ async function loadReportData(e) {
   try {
     const tickets = await apiCall('/tickets' + (qs ? '?' + qs : ''));
     lastReportTickets = tickets;
+    currentReportsPage = 1; // Reset to first page when filtering
     renderReportTable(tickets);
     renderReportStats(tickets);
     
@@ -952,7 +955,23 @@ async function loadReportData(e) {
 
 function renderReportTable(tickets) {
   const tbody = document.querySelector('#reports-table tbody');
-  tbody.innerHTML = tickets.map(t => `
+  
+  if (!tickets || tickets.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; opacity: 0.7; padding: 2rem;">Nenhum registro encontrado.</td></tr>';
+    const container = document.getElementById('reports-pagination');
+    if (container) container.innerHTML = '';
+    return;
+  }
+
+  const totalPages = Math.ceil(tickets.length / reportsPerPage);
+  if (currentReportsPage > totalPages) currentReportsPage = totalPages;
+  if (currentReportsPage < 1) currentReportsPage = 1;
+  
+  const startIndex = (currentReportsPage - 1) * reportsPerPage;
+  const endIndex = startIndex + reportsPerPage;
+  const paginatedTickets = tickets.slice(startIndex, endIndex);
+
+  tbody.innerHTML = paginatedTickets.map(t => `
     <tr>
       <td>#${t.id}</td>
       <td>${t.title} <br><small class="text-secondary">${t.category?.name || ''} ${t.subcategory ? '> ' + t.subcategory.name : ''}</small></td>
@@ -963,7 +982,51 @@ function renderReportTable(tickets) {
       <td>${new Date(t.createdAt).toLocaleDateString()}</td>
     </tr>
   `).join('');
+  
+  renderReportsPagination(tickets.length, totalPages);
 }
+
+function renderReportsPagination(totalItems, totalPages) {
+  const container = document.getElementById('reports-pagination');
+  if (!container) return;
+  
+  if (totalItems <= reportsPerPage) {
+    container.innerHTML = '';
+    return;
+  }
+  
+  let html = `<div class="pagination-info">Mostrando ${Math.min((currentReportsPage - 1) * reportsPerPage + 1, totalItems)} a ${Math.min(currentReportsPage * reportsPerPage, totalItems)} de ${totalItems} registros</div>`;
+  html += `<div class="pagination-buttons">`;
+  
+  html += `<button type="button" class="page-btn ${currentReportsPage === 1 ? 'disabled' : ''}" onclick="changeReportsPage(${currentReportsPage - 1})" ${currentReportsPage === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>`;
+  
+  let startP = Math.max(1, currentReportsPage - 2);
+  let endP = Math.min(totalPages, currentReportsPage + 2);
+  
+  if (startP > 1) {
+    html += `<button type="button" class="page-btn" onclick="changeReportsPage(1)">1</button>`;
+    if (startP > 2) html += `<span class="page-dots">...</span>`;
+  }
+  
+  for (let i = startP; i <= endP; i++) {
+    html += `<button type="button" class="page-btn ${i === currentReportsPage ? 'active' : ''}" onclick="changeReportsPage(${i})">${i}</button>`;
+  }
+  
+  if (endP < totalPages) {
+    if (endP < totalPages - 1) html += `<span class="page-dots">...</span>`;
+    html += `<button type="button" class="page-btn" onclick="changeReportsPage(${totalPages})">${totalPages}</button>`;
+  }
+  
+  html += `<button type="button" class="page-btn ${currentReportsPage === totalPages ? 'disabled' : ''}" onclick="changeReportsPage(${currentReportsPage + 1})" ${currentReportsPage === totalPages ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
+  
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+window.changeReportsPage = function(page) {
+  currentReportsPage = page;
+  renderReportTable(lastReportTickets);
+};
 
 function renderReportStats(tickets) {
   const total = tickets.length;
